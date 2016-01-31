@@ -1,0 +1,10 @@
+set ifconfig syn0:192.168.1.55
+
+mtd_erase /dev/mtd0
+mtd_erase /dev/mtd1
+mtd_erase /dev/mtd2
+
+load -r -o80200000 tftp://192.168.1.54/bsploongson1b.bin;
+flush -di;g -e 80200300;
+
+sudo ./ejtag_debug_usb < configs/config.ls1b2\(16bit\)
