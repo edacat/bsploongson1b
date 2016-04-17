@@ -702,7 +702,7 @@ static irqreturn_t  __designwareEthIsr (struct netif  *pNetif, ULONG  ulVector)
                     write32(uiIntEnable,                                /*  关闭接收中断                */
                             (addr_t)&pDmaRegs->DMA_uiIntEnable);
                 } else {
-                    printk(KERN_ERR "__designwareEthIsr(): failed to add net job!\n");
+                    printk(KERN_ERR "__designwareEthIsr(): failed to add net job, OverFlow!\n");
                 }
             }
         }

@@ -62,7 +62,7 @@
 #define SYS_CNTRL_TM1       (1 << 2)
 #define SYS_CNTRL_TM0       (1 << 1)
 #define SYS_CNTRL_TS        (1 << 0)
-#define LS1X_RTC_CNTRL_INIT_VAL (SYS_CNTRL_BP | SYS_CNTRL_BRT | SYS_CNTRL_TEN | (1 << 9))
+#define LS1X_RTC_CNTRL_INIT_VAL (SYS_CNTRL_TEN | SYS_CNTRL_BTT | SYS_CNTRL_E0)
 #define LS1X_RTC_CNTR_OK    (SYS_CNTRL_E0 | SYS_CNTRL_32S)
 
 #define LS1X_SEC_OFFSET     (4)
@@ -164,7 +164,8 @@ static VOID  ls1xRtcInit (VOID)
 {
     UINT32  uiVal = 0;
 
-    writel(LS1X_RTC_CNTRL_INIT_VAL, SYS_COUNTER_CNTRL);                 /*  初始化RTC控制寄存器使用TOY  */
+    writel(readl(SYS_COUNTER_CNTRL) | LS1X_RTC_CNTRL_INIT_VAL,
+            SYS_COUNTER_CNTRL);                                         /*  初始化RTC控制寄存器使用TOY  */
 
     uiVal = readl(SYS_COUNTER_CNTRL);
     if (!(uiVal & LS1X_RTC_CNTR_OK)) {

@@ -28,14 +28,10 @@
 /*********************************************************************************************************
   宏定义
 *********************************************************************************************************/
-#define LS1X_CFG_WDT_BASE       (0xBFE5C060)
-#define WDT_EN                  (0x00)
-#define WDT_TIMER               (0x04)
-#define WDT_SET                 (0x08)
 #define TIMEOUT_MIN             (0)
 #define TIMEOUT_MAX             (45)                                    /*  45 second                   */
 #define TIMEOUT_DEFAULT         TIMEOUT_MAX
-#define WDTDEBUG                (1)
+#define WDTDEBUG                (0)
 
 /*********************************************************************************************************
 全局变量
@@ -68,13 +64,13 @@ static INT  ls1xWDTHwInit (PLS1X_WDT_DEV pwdt, UINT uiTimeout)
 
     ULONG   uiWDTClock = ls1xAPBClock();
 
-    writel(0x01, pwdt->WDT_ulPhyAddrBase + WDT_EN);
+    writel(0x01, pwdt->WDT_ulPhyAddrBase + BSP_CFG_WDT_EN);
 #if WDTDEBUG
     uiWDTClock = 1;
 #else
 #endif
-    writel(uiTimeout * uiWDTClock, pwdt->WDT_ulPhyAddrBase + WDT_TIMER);
-    writel(0x01, pwdt->WDT_ulPhyAddrBase + WDT_SET);
+    writel(uiTimeout * uiWDTClock, pwdt->WDT_ulPhyAddrBase + BSP_CFG_WDT_TIMER);
+    writel(0x01, pwdt->WDT_ulPhyAddrBase + BSP_CFG_WDT_SET);
 
     return  (ERROR_NONE);
 }
@@ -90,7 +86,7 @@ static VOID  ls1xWDTDeInit (PLS1X_WDT_DEV     pwdt)
 {
 #if WDTDEBUG
 #else
-    writel(0x00, pwdt->WDT_ulPhyAddrBase + WDT_EN);
+    writel(0x00, pwdt->WDT_ulPhyAddrBase + BSP_CFG_WDT_EN);
 #endif
 }
 /*********************************************************************************************************
@@ -279,7 +275,7 @@ INT  ls1xWatchDogDevAdd (CPCHAR  cpcName)
 
     lib_memset(pwdt, 0, sizeof(LS1X_WDT_DEV));
 
-    pwdt->WDT_ulPhyAddrBase = LS1X_CFG_WDT_BASE;
+    pwdt->WDT_ulPhyAddrBase = BSP_CFG_WDT_BASE;
     pwdt->WDT_time          = time(LW_NULL);
 
     if (API_IosDevAddEx(&pwdt->WDT_devhdr, cpcName, _G_ils1xWDTDrvNum, DT_CHR) != ERROR_NONE) {

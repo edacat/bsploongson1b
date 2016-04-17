@@ -26,15 +26,15 @@
 
 #define BSP_CFG_ROM_BASE                0xBFC00000
 #define BSP_CFG_ROM_PA_BASE             MIPS32_KSEG1_PA(BSP_CFG_ROM_BASE)
-#define BSP_CFG_ROM_SIZE                0xC00000
+#define BSP_CFG_ROM_SIZE                0x00C00000
 
 #define BSP_CFG_RAM_BASE                0x80200000
 #define BSP_CFG_RAM_PA_BASE             MIPS32_KSEG0_PA(BSP_CFG_RAM_BASE)
-#define BSP_CFG_RAM_SIZE                (46 * 1024 * 1024)
+#define BSP_CFG_RAM_SIZE                (47 * 1024 * 1024)
 
 #define BSP_CFG_KERNEL_SIZE             (6 * 1024 * 1024)
 
-#define BSP_CFG_DATA_BASE               0x80800000
+#define BSP_CFG_DATA_BASE               (BSP_CFG_RAM_BASE + BSP_CFG_KERNEL_SIZE)
 #define BSP_CFG_DATA_PA_BASE            MIPS32_KSEG0_PA(BSP_CFG_DATA_BASE)
 
 #define BSP_CFG_COMMON_MEM_SIZE         (24 * 1024 * 1024)

@@ -8,3 +8,8 @@ load -r -o80200000 tftp://192.168.1.54/bsploongson1b.bin;
 flush -di;g -e 80200300;
 
 sudo ./ejtag_debug_usb < configs/config.ls1b2\(16bit\)
+
+NAND Boot:
+1. mtd_erase /dev/mtd0 
+2. devcp tftp://192.168.1.54/bsploongson1b.bin /dev/mtd0
+3. set al "-r -o80200000 /dev/mtd0;flush -di;g -e 80200300"

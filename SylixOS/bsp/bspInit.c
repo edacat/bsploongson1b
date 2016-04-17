@@ -30,6 +30,7 @@
 #include "lwip/tcpip.h"                                                 /*  网络系统                    */
 #include "netif/etharp.h"                                               /*  以太网网络接口              */
 #include "netif/aodvif.h"                                               /*  aodv 多跳自组网网络接口     */
+#include "net/if_param.h"                                               /*  网络接口参数获取            */
 /*********************************************************************************************************
   BSP 及 驱动程序
 *********************************************************************************************************/
@@ -125,7 +126,7 @@ static VOID  halIdleInit (VOID)
 
 static VOID  halCacheInit (VOID)
 {
-    API_CacheLibInit(CACHE_COPYBACK, CACHE_COPYBACK, MIPS_MACHINE_LS1B);/*  初始化 CACHE 系统           */
+    API_CacheLibInit(CACHE_COPYBACK, CACHE_COPYBACK, MIPS_MACHINE_LS1X);/*  初始化 CACHE 系统           */
     API_CacheEnable(INSTRUCTION_CACHE);
     API_CacheEnable(DATA_CACHE);                                        /*  使能 CACHE                  */
 }
@@ -143,7 +144,7 @@ static VOID  halCacheInit (VOID)
 
 static VOID  halFpuInit (VOID)
 {
-    API_KernelFpuInit(MIPS_MACHINE_LS1B, MIPS_FPU_NONE);
+    API_KernelFpuInit(MIPS_MACHINE_LS1X, MIPS_FPU_NONE);
 }
 
 #endif                                                                  /*  LW_CFG_CACHE_EN > 0         */
@@ -159,14 +160,6 @@ static VOID  halFpuInit (VOID)
 
 static VOID  halPmInit (VOID)
 {
-    /*
-     * TODO: 加入你的处理代码, 参考代码如下:
-     */
-#if 0                                                                   /*  参考代码开始                */
-    PLW_PMA_FUNCS  pmafuncs = pmGetFuncs();
-
-    pmAdapterCreate("inner_pm", 21, pmafuncs);
-#endif                                                                  /*  参考代码结束                */
 }
 
 #endif                                                                  /*  LW_CFG_POWERM_EN > 0        */
@@ -238,17 +231,6 @@ static VOID  halDrvInit (VOID)
     ls1xLedDrv();
     ads7846Drv();                                                       /*  ads7846 触摸屏设备          */
     ls1xKeyDrv();
-
-#if 0                                                                   /*  参考代码开始                */
-    INT              i;
-    ULONG            ulMaxBytes;
-    PLW_DMA_FUNCS    pdmafuncs;
-
-    for (i = 0; i < 4; i++) {                                           /*  安装 4 个通用 DMA 通道      */
-        pdmafuncs = dmaGetFuncs(LW_DMA_CHANNEL0 + i, &ulMaxBytes);
-        dmaDrv((UINT)i, pdmafuncs, (size_t)ulMaxBytes);                 /*  安装 DMA 控制器驱动         */
-    }
-#endif                                                                  /*  参考代码结束                */
 }
 
 #endif                                                                  /*  LW_CFG_DEVICE_EN > 0        */
@@ -408,7 +390,7 @@ static VOID  halShellInit (VOID)
 
 static VOID  halVmmInit (VOID)
 {
-    API_VmmLibInit(_G_zonedescGlobal, _G_globaldescMap, MIPS_MACHINE_LS1B);
+    API_VmmLibInit(_G_zonedescGlobal, _G_globaldescMap, MIPS_MACHINE_LS1X);
     API_VmmMmuEnable();
 }
 
@@ -494,15 +476,43 @@ static VOID  halNetifAttch (VOID)
     static struct netif  ethernetif[2];
     ip_addr_t            ip, submask, gateway;
     struct netif        *pnetif;
+    int                  i;
+    void                *ifparam;
+    int                  enable = 1;
+    int                  def    = 1;
+    int                  mac[6];
+    char                 macstr[32];
 
     /*
      * 网口一
      */
     pnetif = &ethernetif[0];
 
-    IP4_ADDR(&ip,       192, 168,   1,  55);
+    IP4_ADDR(&ip,       192, 168,   1,  53);
     IP4_ADDR(&submask,  255, 255, 255,   0);
     IP4_ADDR(&gateway,  192, 168,   1,   1);
+
+    ifparam = if_param_load("loongson1b");
+    if (ifparam) {
+        if_param_getenable(ifparam, &enable);
+        if_param_getdefault(ifparam, &def);
+        if_param_getipaddr(ifparam, &ip);
+        if_param_getnetmask(ifparam, &submask);
+        if_param_getgw(ifparam, &gateway);
+
+        if (!if_param_getmac(ifparam, macstr, sizeof(macstr))) {
+            if (sscanf(macstr, "%x:%x:%x:%x:%x:%x",
+                       &mac[0], &mac[1], &mac[2],
+                       &mac[3], &mac[4], &mac[5]) == 6) {
+                for (i = 0; i < 6; i++) {
+                    _G_designwareEthData[0].ucMacAddr[i] = (UINT8)mac[i];
+                }
+            }
+        }
+
+        if_param_syncdns();
+        if_param_unload(ifparam);
+    }
 
     netif_add(pnetif, &ip, &submask, &gateway,
               &_G_designwareEthData[0], designwareEthInit,
@@ -847,14 +857,6 @@ INT bspInit (VOID)
     static __section(.noinit) CHAR  cKernelHeap[12 * LW_CFG_MB_SIZE];
 
     halModeInit();                                                      /*  初始化硬件                  */
-
-    /*
-     *  这里的调试端口是脱离操作系统的, 所以他应该不依赖于操作系统而存在.
-     *  当系统出现错误时, 这个端口显得尤为关键. (项目成熟后可以通过配置关掉)
-     */
-#if 0                                                                   /*  参考代码开始                */
-    debugChannelInit(0);                                                /*  初始化调试接口              */
-#endif                                                                  /*  参考代码结束                */
 
     /*
      *  这里使用 bsp 设置启动参数, 如果 bootloader 支持, 可使用 bootloader 设置.

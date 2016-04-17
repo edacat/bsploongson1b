@@ -4,12 +4,12 @@
 		<cconfiguration id="com.sylixos.realcoder.toolChain.armsylixeabi.173846288">
 			<storageModule buildSystemId="org.eclipse.cdt.managedbuilder.core.configurationDataProvider" id="com.sylixos.realcoder.toolChain.armsylixeabi.173846288" moduleId="org.eclipse.cdt.core.settings" name="Default">
 				<macros>
-					<stringMacro name="SYLIXOS_TOOLCHAIN_PATH" type="VALUE_PATH_DIR" value="C:\ACOINFO\mips-sylixos-toolchain"/>
-					<stringMacro name="SYLIXOS_TEMPLATE_ARCH" type="VALUE_TEXT" value="mips"/>
+					<stringMacro name="SYLIXOS_TOOLCHAIN_PATH" type="VALUE_PATH_DIR" value="C:\ACOINFO\arm-sylixos-toolchain"/>
+					<stringMacro name="SYLIXOS_TEMPLATE_ARCH" type="VALUE_TEXT"/>
 					<stringMacro name="SYLIXOS_TOOLCHAIN_VER" type="VALUE_TEXT" value="4.9.3"/>
-					<stringMacro name="SYLIXOS_TOOLCHAIN_PREFIX" type="VALUE_TEXT" value="mips-sylixos-elf"/>
+					<stringMacro name="SYLIXOS_TOOLCHAIN_PREFIX" type="VALUE_TEXT" value="arm-sylixos-eabi"/>
 					<stringMacro name="SYLIXOS_BASE_PATH" type="VALUE_PATH_DIR" value="D:/sylixos_workspace/sylixos-base"/>
-					<stringMacro name="SYLIXOS_TEMPLATE_NAME" type="VALUE_TEXT" value="mips-none"/>
+					<stringMacro name="SYLIXOS_TEMPLATE_NAME" type="VALUE_TEXT"/>
 				</macros>
 				<externalSettings/>
 				<extensions>

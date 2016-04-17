@@ -407,17 +407,12 @@ VOID  bspKernelInitHook (VOID)
 *********************************************************************************************************/
 VOID  bspReboot (INT  iRebootType, addr_t  ulStartAddress)
 {
+    (VOID)iRebootType;
     (VOID)ulStartAddress;
 
-    /*
-     * TODO: 加入你的处理代码, 建议使用硬件看门狗或硬件复位电路来复位, 如果没有, 保留下面的代码
-     */
-
-#ifdef __BOOT_INRAM
-    ((VOID (*)(INT))bspInfoRamBase())(iRebootType);
-#else
-    ((VOID (*)(INT))bspInfoRomBase())(iRebootType);
-#endif                                                                  /*  __BOOT_INRAM                */
+    write32(0x01, BSP_CFG_WDT_BASE + BSP_CFG_WDT_EN);
+    write32(0x01, BSP_CFG_WDT_BASE + BSP_CFG_WDT_TIMER);
+    write32(0x01, BSP_CFG_WDT_BASE + BSP_CFG_WDT_SET);
 }
 /*********************************************************************************************************
 ** 函数名称: bspDebugMsg
@@ -669,7 +664,36 @@ VOID  bspTickInit (VOID)
 *********************************************************************************************************/
 VOID  bspTickHighResolution (struct timespec *ptv)
 {
+    REGISTER UINT32  uiCntCur, uiDone;
+    UINT64   ui64NSecPerCnt7;
+    BOOL     iVecFlag;
 
+    ui64NSecPerCnt7 = ((1000 * 1000 * 1000 / LW_TICK_HZ) << 7) / BSP_TMR_RELOAD;
+
+    uiCntCur = mipsCp0CountRead();
+    uiDone   = BSP_TMR_RELOAD - uiCntCur;
+
+    API_InterVectorIsEnable(BSP_CFG_TIMER_VECTOR, &iVecFlag);
+    /*
+     *  检查是否有 TICK 中断请求
+     */
+    if (iVecFlag) {
+        /*
+         *  这里由于 TICK 没有及时更新, 所以需要重新获取并且加上一个 TICK 的时间
+         */
+        uiCntCur = mipsCp0CountRead();
+        uiDone   = BSP_TMR_RELOAD - uiCntCur;
+
+        if (uiCntCur != 0) {
+            uiDone   += BSP_TMR_RELOAD;
+        }
+    }
+
+    ptv->tv_nsec += (LONG)((ui64NSecPerCnt7 * uiDone) >> 7);
+    if (ptv->tv_nsec >= 1000000000) {
+        ptv->tv_nsec -= 1000000000;
+        ptv->tv_sec++;
+    }
 }
 /*********************************************************************************************************
 ** 函数名称: bspDelayUs
